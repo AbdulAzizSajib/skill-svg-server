@@ -19,4 +19,12 @@ userRouter.post(
   userController.createAdmin,
 );
 
+userRouter.patch(
+  "/me",
+  checkAuth(Role.USER, Role.ADMIN),
+  multerUpload.single("profilePhoto"),
+  validateRequest(UserValidation.updateProfileZodSchema),
+  userController.updateProfile,
+);
+
 export default userRouter;

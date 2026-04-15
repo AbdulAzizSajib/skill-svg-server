@@ -73,9 +73,14 @@ const serveSvgIcon = catchAsync(async (req: Request, res: Response) => {
 
 const trackCopy = catchAsync(async (req: Request, res: Response) => {
   const slug = getSlugParam(req);
-  const { type } = req.body as { type: "link" | "embed" };
+  const { type } = req.body as { type: "link" | "embed" | "external_embed" };
 
-  const eventType = type === "link" ? EventType.COPY_LINK : EventType.COPY_EMBED;
+  const eventType =
+    type === "link"
+      ? EventType.COPY_LINK
+      : type === "embed"
+        ? EventType.COPY_EMBED
+        : EventType.EXTERNAL_EMBED;
   const result = await svgService.trackCopyEvent(slug, eventType);
 
   sendResponse(res, {

@@ -29,11 +29,6 @@ export const auth = betterAuth({
         }
 
         if (type === "email-verification") {
-          if (user.role === Role.OWNER) {
-            console.log(`Owner ${email} - skipping OTP.`);
-            return;
-          }
-
           await sendEmail({
             to: email,
             subject: "Verify Your Email - Portfolio Server",

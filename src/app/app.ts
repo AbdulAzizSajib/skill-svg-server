@@ -16,6 +16,8 @@ import { auth } from "./lib/auth";
 import { prisma } from "./lib/prisma";
 import categoryRouter from "./module/category/category.router";
 import svgRouter from "./module/svg/svg.router";
+import tagRouter from "./module/tag/tag.router";
+import usageEventRouter from "./module/usageEvent/usageEvent.router";
 
 const app: Express = express();
 
@@ -54,6 +56,8 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/svg",svgRouter);
+app.use("/api/v1/tags", tagRouter);
+app.use("/api/v1/usage-events", usageEventRouter);
 
 
 

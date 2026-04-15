@@ -28,7 +28,11 @@ svgRouter.post(
 );
 
 // Track copy events (no auth needed)
-svgRouter.post("/:slug/track", svgController.trackCopy);
+svgRouter.post(
+  "/:slug/track",
+  validateRequest(SvgValidation.trackEventSchema),
+  svgController.trackCopy,
+);
 
 // Protected
 svgRouter.patch(

@@ -265,7 +265,7 @@ const trackCopyEvent = async (slug: string, eventType: EventType) => {
   const countField =
     eventType === EventType.COPY_LINK
       ? "copyCount"
-      : eventType === EventType.COPY_EMBED
+      : eventType === EventType.COPY_EMBED || eventType === EventType.EXTERNAL_EMBED
         ? "embedCount"
         : null;
 

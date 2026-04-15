@@ -1,8 +1,17 @@
 import { Request, Response } from "express";
 import status from "http-status";
+import AppError from "../../errorHelpers/AppError";
 import { catchAsync } from "../../shared/catchAsync";
 import { sendResponse } from "../../shared/sendResponse";
 import { categoryService } from "./category.service";
+
+const getParam = (value: string | string[] | undefined, fieldName: string) => {
+  if (typeof value !== "string" || !value.trim()) {
+    throw new AppError(status.BAD_REQUEST, `${fieldName} param is required`);
+  }
+
+  return value;
+};
 
 const createCategory = catchAsync(async (req: Request, res: Response) => {
   const result = await categoryService.createCategory(req.body);
@@ -28,7 +37,8 @@ const listCategories = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getCategoryBySlug = catchAsync(async (req: Request, res: Response) => {
-  const result = await categoryService.getCategoryBySlug(req.params.slug);
+  const slug = getParam(req.params.slug, "slug");
+  const result = await categoryService.getCategoryBySlug(slug);
 
   sendResponse(res, {
     httpStatusCode: status.OK,
@@ -39,7 +49,8 @@ const getCategoryBySlug = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updateCategory = catchAsync(async (req: Request, res: Response) => {
-  const result = await categoryService.updateCategory(req.params.id, req.body);
+  const id = getParam(req.params.id, "id");
+  const result = await categoryService.updateCategory(id, req.body);
 
   sendResponse(res, {
     httpStatusCode: status.OK,
@@ -50,7 +61,8 @@ const updateCategory = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deleteCategory = catchAsync(async (req: Request, res: Response) => {
-  const result = await categoryService.deleteCategory(req.params.id);
+  const id = getParam(req.params.id, "id");
+  const result = await categoryService.deleteCategory(id);
 
   sendResponse(res, {
     httpStatusCode: status.OK,

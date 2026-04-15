@@ -35,6 +35,10 @@ const updateSvgSchema = z.object({
   tags: z.array(z.string().max(40)).optional(),
 });
 
+const trackEventSchema = z.object({
+  type: z.enum(["link", "embed", "external_embed"]),
+});
+
 const listSvgQuerySchema = z.object({
   page: z.coerce.number().int().positive().optional().default(1),
   limit: z.coerce.number().int().min(1).max(100).optional().default(20),
@@ -51,5 +55,6 @@ export const SvgValidation = {
   uploadSvgBodySchema,
   pasteSvgSchema,
   updateSvgSchema,
+  trackEventSchema,
   listSvgQuerySchema,
 };
