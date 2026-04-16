@@ -7,6 +7,8 @@ cloudinary.config({
   cloud_name: envVars.CLOUDINARY.CLOUDINARY_CLOUD_NAME,
   api_key: envVars.CLOUDINARY.CLOUDINARY_API_KEY,
   api_secret: envVars.CLOUDINARY.CLOUDINARY_API_SECRET,
+  secure: true,
+  timeout: 30000,
 });
 
 export const uploadFileToCloudinary = async (

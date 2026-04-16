@@ -331,10 +331,12 @@ const deleteSvgFile = async (slug: string, requesterId: string, requesterRole: s
     throw new AppError(status.FORBIDDEN, "You do not own this SVG");
   }
 
-  // Delete from Cloudinary
- await deleteFileFromCloudinary(svgFile.cdnUrl, "image");
-
+  // Delete DB record first; Cloudinary cleanup is best-effort
   await prisma.svgFile.delete({ where: { slug } });
+
+  deleteFileFromCloudinary(svgFile.cdnUrl, "image").catch((err) => {
+    console.error("Cloudinary delete failed for", svgFile.cdnUrl, err);
+  });
 
   return { deleted: true };
 };
