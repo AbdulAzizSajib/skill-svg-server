@@ -11,7 +11,7 @@ const svgRouter: Router = Router();
 // Public
 svgRouter.get("/", validateRequest(SvgValidation.listSvgQuerySchema, "query"), svgController.listSvgFiles);
 svgRouter.get(
-  "/icons/:slug",
+  "/:slug",
   validateRequest(SvgValidation.serveIconQuerySchema, "query"),
   svgController.serveSvgIcon,
 );

@@ -33,6 +33,8 @@ app.use(
       envVars.BETTER_AUTH_URL,
       "http://localhost:3000",
       "http://localhost:5000",
+      "https://skill-svg-server.vercel.app",
+      "https://skill-svg.vercel.app",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
@@ -52,12 +54,12 @@ app.get("/", (_req, res) => {
   res.status(200).send("Skill SVG Server is running...");
 });
 
-app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/users", userRouter);
+app.use("/auth", authRouter);
+app.use("/users", userRouter);
 
-app.use("/api/v1/svg",svgRouter);
+app.use("/svg", svgRouter);
 
-app.use("/api/v1/usage-events", usageEventRouter);
+app.use("/usage-events", usageEventRouter);
 
 
 
