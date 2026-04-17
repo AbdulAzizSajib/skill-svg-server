@@ -71,9 +71,24 @@ const serveSvgIcon = catchAsync(async (req: Request, res: Response) => {
   if (w !== undefined) formatOptions.width = w;
   if (h !== undefined) formatOptions.height = h;
 
+
+const options = Object.keys(formatOptions).length > 0 ? formatOptions : undefined;
+
+  // ── Comma detected → multi-icon ──────────────────────────────
+  if (slug.includes(",")) {
+    const slugList = slug.split(",").map((s) => s.trim()).filter(Boolean);
+    const svgContent = await svgService.getMultipleSvgIcons(slugList, options);
+
+    res.setHeader("Content-Type", "image/svg+xml");
+    res.setHeader("Cache-Control", "public, max-age=31536000");
+    return res.send(svgContent);
+  }
+
+
+
   const svgContent = await svgService.getSvgIconContentBySlug(
     slug,
-    Object.keys(formatOptions).length > 0 ? formatOptions : undefined,
+    options,
   );
 
   res.setHeader("Content-Type", "image/svg+xml");
@@ -134,4 +149,6 @@ export const svgController = {
   trackCopy,
   updateSvgFile,
   deleteSvgFile,
+  // getMultipleSvgIcons
+  
 };

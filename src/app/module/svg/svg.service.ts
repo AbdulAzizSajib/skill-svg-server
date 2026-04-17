@@ -292,6 +292,153 @@ const deleteSvgFile = async (slug: string) => {
   return { deleted: true };
 };
 
+
+// ── Serve multiple icons as SVG sprite ────────────────────────
+// const getMultipleSvgIcons = async (slugs: string[], formatOptions?: SvgFormatOptions) => {
+//   if (slugs.length > 20) {
+//     throw new AppError(status.BAD_REQUEST, "Maximum 20 icons per request");
+//   }
+
+//   const svgFiles = await prisma.svgFile.findMany({
+//     where: { slug: { in: slugs } },
+//     select: { id: true, slug: true, cdnUrl: true, title: true },
+//   });
+
+//   if (svgFiles.length === 0) {
+//     throw new AppError(status.NOT_FOUND, "No SVGs found");
+//   }
+
+//   // Fetch all SVG contents in parallel
+//   const fetchResults = await Promise.all(
+//     svgFiles.map(async (file) => {
+//       const response = await fetch(file.cdnUrl);
+//       if (!response.ok) return null;
+//       const content = await response.text();
+//       return { ...file, content };
+//     }),
+//   );
+
+//   const validResults = fetchResults.filter(Boolean) as Array<{
+//     id: string;
+//     slug: string;
+//     title: string | null;
+//     content: string;
+//   }>;
+
+//   // Fire-and-forget view tracking for all
+//   void Promise.all(
+//     validResults.map((f) =>
+//       Promise.all([
+//         prisma.svgFile.update({ where: { slug: f.slug }, data: { viewCount: { increment: 1 } } }),
+//         prisma.usageEvent.create({ data: { svgFileId: f.id, eventType: EventType.VIEW } }),
+//       ]),
+//     ),
+//   );
+
+//   const width = formatOptions?.width ?? 24;
+//   const height = formatOptions?.height ?? 24;
+//   const gap = 8;
+//   const cols = validResults.length;
+//   const totalWidth = cols * width + (cols - 1) * gap;
+
+//   // Strip outer <svg> wrapper from each icon, wrap as <g> positioned inline
+//   const symbols = validResults
+//     .map((file, i) => {
+//       // Extract inner content from <svg ...>...</svg>
+//       const innerMatch = file.content.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+//       const inner = innerMatch?.[1] ?? file.content;
+
+//       // Extract viewBox from the original so scaling works correctly
+//       const viewBoxMatch = file.content.match(/viewBox=["']([^"']+)["']/i);
+//       const viewBox = viewBoxMatch?.[1] ?? `0 0 ${width} ${height}`;
+
+//       const x = i * (width + gap);
+
+//       return `
+//   <svg x="${x}" y="0" width="${width}" height="${height}" viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg">
+//     ${inner}
+//   </svg>`;
+//     })
+//     .join("\n");
+
+//   const combinedSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}" viewBox="0 0 ${totalWidth} ${height}">
+// ${symbols}
+// </svg>`;
+
+//   return combinedSvg;
+// };
+
+const getMultipleSvgIcons = async (slugs: string[], formatOptions?: SvgFormatOptions) => {
+  if (slugs.length > 20) {
+    throw new AppError(status.BAD_REQUEST, "Maximum 20 icons per request");
+  }
+
+  const svgFiles = await prisma.svgFile.findMany({
+    where: { slug: { in: slugs } },
+    select: { id: true, slug: true, cdnUrl: true, title: true },
+  });
+
+  if (svgFiles.length === 0) {
+    throw new AppError(status.NOT_FOUND, "No SVGs found");
+  }
+
+  // ── Original slug order বজায় রাখো ────────────────────────────
+  const slugIndexMap = new Map(slugs.map((slug, i) => [slug, i]));
+  svgFiles.sort((a, b) => (slugIndexMap.get(a.slug) ?? 0) - (slugIndexMap.get(b.slug) ?? 0));
+
+  // ── Parallel fetch ────────────────────────────────────────────
+  const fetchResults = await Promise.all(
+    svgFiles.map(async (file) => {
+      const response = await fetch(file.cdnUrl);
+      if (!response.ok) return null;
+      const content = await response.text();
+      return { ...file, content };
+    }),
+  );
+
+  const validResults = fetchResults.filter(Boolean) as Array<{
+    id: string;
+    slug: string;
+    title: string | null;
+    content: string;
+  }>;
+
+  if (validResults.length === 0) {
+    throw new AppError(status.BAD_GATEWAY, "Failed to fetch SVG contents");
+  }
+
+  // ── Fire-and-forget tracking ──────────────────────────────────
+  void Promise.all(
+    validResults.map((f) =>
+      Promise.all([
+        prisma.svgFile.update({ where: { slug: f.slug }, data: { viewCount: { increment: 1 } } }),
+        prisma.usageEvent.create({ data: { svgFileId: f.id, eventType: EventType.VIEW } }),
+      ]),
+    ),
+  );
+
+  const width = formatOptions?.width ?? 24;
+  const height = formatOptions?.height ?? 24;
+  const gap = 8;
+  const totalWidth = validResults.length * width + (validResults.length - 1) * gap;
+
+  const symbols = validResults
+    .map((file, i) => {
+      const innerMatch = file.content.match(/<svg[^>]*>([\s\S]*?)<\/svg>/i);
+      const inner = innerMatch?.[1] ?? file.content;
+
+      const viewBoxMatch = file.content.match(/viewBox=["']([^"']+)["']/i);
+      const viewBox = viewBoxMatch?.[1] ?? `0 0 ${width} ${height}`;
+
+      const x = i * (width + gap);
+
+      return `  <svg x="${x}" y="0" width="${width}" height="${height}" viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+    })
+    .join("\n");
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth}" height="${height}" viewBox="0 0 ${totalWidth} ${height}">\n${symbols}\n</svg>`;
+};
+
 export const svgService = {
   uploadSvgFile,
   bulkPasteSvg,
@@ -301,4 +448,5 @@ export const svgService = {
   trackCopyEvent,
   updateSvgFile,
   deleteSvgFile,
+  getMultipleSvgIcons
 };

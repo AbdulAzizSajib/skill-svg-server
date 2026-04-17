@@ -31,7 +31,7 @@ export const auth = betterAuth({
         if (type === "email-verification") {
           await sendEmail({
             to: email,
-            subject: "Verify Your Email - Portfolio Server",
+            subject: "Verify Your Email - Stack Symbols",
             html: `<p>Hello ${user.name},</p><p>Your verification code is <strong>${otp}</strong>.</p><p>This code expires in 2 minutes.</p>`,
           });
         }
@@ -39,7 +39,7 @@ export const auth = betterAuth({
         if (type === "forget-password") {
           await sendEmail({
             to: email,
-            subject: "Reset Your Password - Portfolio Server",
+            subject: "Reset Your Password - Stack Symbols",
             html: `<p>Hello ${user.name},</p><p>Your password reset code is <strong>${otp}</strong>.</p><p>This code expires in 2 minutes.</p>`,
           });
         }
