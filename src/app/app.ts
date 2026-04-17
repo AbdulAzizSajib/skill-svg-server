@@ -18,6 +18,7 @@ import { prisma } from "./lib/prisma";
 import svgRouter from "./module/svg/svg.router";
 
 import usageEventRouter from "./module/usageEvent/usageEvent.router";
+import { requestSvgRouter } from "./module/requestSvg/requestSvg.router";
 
 const app: Express = express();
 
@@ -60,6 +61,7 @@ app.use("/users", userRouter);
 app.use("/svg", svgRouter);
 
 app.use("/usage-events", usageEventRouter);
+app.use("/request-svg", requestSvgRouter);
 
 
 

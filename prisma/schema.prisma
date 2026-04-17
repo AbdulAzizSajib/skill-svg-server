@@ -1,7 +1,3 @@
-// SkillSVG — Prisma Schema
-// Stack: Express + TypeScript + PostgreSQL
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -10,10 +6,6 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
-
-// ================================
-// AUTH (Better Auth — unchanged)
-// ================================
 
 model User {
   id            String   @id @default(cuid())
@@ -85,10 +77,6 @@ enum Role {
   ADMIN
 }
 
-// ================================
-// SVG FILES (core)
-// ================================
-
 model SvgFile {
   id    String  @id @default(cuid())
   title String?
@@ -159,4 +147,26 @@ enum EventType {
   COPY_LINK
   COPY_EMBED
   EXTERNAL_EMBED
+}
+
+model RequestSvg {
+  id String @id @default(cuid())
+
+  name String // e.g. "Spotify", "Stripe"
+
+  ip      String? // basic spam control
+  country String? // analytics (optional but useful)
+
+  status RequestStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+
+  @@index([name])
+  @@index([status])
+  @@map("requested_svgs")
+}
+
+enum RequestStatus {
+  PENDING
+  ADDED
 }
